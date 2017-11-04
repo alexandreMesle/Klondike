@@ -2,22 +2,24 @@ package card;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Card implements Comparable<Card>
 {
 	private Color color;
 	private Figure figure;
-	private static List<Card> cards;
+	private static Set<Card> cards;
 	
 	static 
 	{
-		cards = new ArrayList<>();
+		cards = new HashSet<>();
 		for (Color color : Color.getColors())
 			for(Figure figure : Figure.getFigure())
 				cards.add(new Card(color, figure));
 	}
-	
+
 	private Card(Color color, Figure figure)
 	{
 		this.color = color;
@@ -42,9 +44,11 @@ public class Card implements Comparable<Card>
 	
 	public static List<Card> getCards()
 	{
-		return Collections.unmodifiableList(cards);
+		List<Card> cards = new ArrayList<>(Card.cards);
+		Collections.shuffle(cards);
+		return cards;
 	}
-	
+
 	@Override
 	public String toString()
 	{
@@ -55,5 +59,15 @@ public class Card implements Comparable<Card>
 	{
 		for (Card card : getCards())
 			System.out.println(card);
+	}
+	
+	public boolean isRed()
+	{
+		return color.isRed();
+	}
+	
+	public int getValue()
+	{
+		return getFigure().getValue();
 	}
 }
