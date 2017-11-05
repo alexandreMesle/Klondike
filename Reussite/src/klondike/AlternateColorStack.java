@@ -1,9 +1,10 @@
 package klondike;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Stack;
+import static java.lang.Math.*;
 
 import card.Card;
 
@@ -14,26 +15,27 @@ public class AlternateColorStack extends CardStack
 	
 	public AlternateColorStack(List<Card> source, int nbCards)
 	{
-		Iterator<Card> iterator = source.iterator();
-		Card card = iterator.next();
-		int i = 1;
-		while(iterator.hasNext() && i <= nbCards)
+		super();
+		if (nbCards != 0)
 		{
-			push(card);
-			iterator.remove();
-			card = iterator.next();
-			i++;
+			Iterator<Card> iterator = source.iterator();
+			int i = 1;
+			while(iterator.hasNext() && i <= nbCards)
+			{
+				Card card = iterator.next();
+				push(card);
+				iterator.remove();
+				i++;
+			}
 		}
-		numberOfHiddenCards = nbCards - 1;
+		numberOfHiddenCards = max(nbCards - 1, 0);
 		pushHiddenCards = false;
 	}
 	
-	public void uncover()
+	private void uncover()
 	{
 		if(numberOfHiddenCards != 0)
 			numberOfHiddenCards--;
-		else
-			throw new RuntimeException("No Card to uncover");
 	}
 	
 	protected void pop()
@@ -45,40 +47,52 @@ public class AlternateColorStack extends CardStack
 	public List<Card> getShown()
 	{
 		List<Card> cards = getCards();
-		cards = cards.subList(numberOfHiddenCards, cards.size());
+		cards = new ArrayList<>(cards.subList(numberOfHiddenCards, cards.size()));
+		Collections.reverse(cards);
 		cards = Collections.unmodifiableList(cards);
 		return cards;
 	}
 	
-	private List<Card> bulkTop(Card bottomCard)
+	private List<Card> bulkTop(CardStack destinationStack)
 	{
-		List<Card> cards = new Stack<>();
-		for (Card card : getShown())
+		List<Card> cards = getCards(), subList = null;
+		int nbCards = cards.size();
+		for (int i = numberOfHiddenCards ; i < nbCards ; i++)
 		{
-			cards.add(card);
-			if (card == bottomCard)
-				return cards;
+			if (subList == null && destinationStack.canPush(cards.get(i)))
+				subList = new ArrayList<>(cards.subList(i, cards.size()));
+			if (subList != null)
+				pop();
 		}
-		return null;
+		return subList;
 	}
 	
 	public void bulkMove(CardStack destinationStack)
 	{
-		for(Card card : getShown())
+		List<Card> cards = bulkTop(destinationStack);
+		if (cards == null)
+			throw new RuntimeException("Can't bulk move " + getCards().toString() 
+					+ " to " + destinationStack.getCards().toString());
+		destinationStack.push(cards);
+	}
+	
+	public boolean canBulkMove(CardStack destinationStack)
+	{
+		for (Card card : getShown())
 			if (destinationStack.canPush(card))
-			{
-				List<Card> cards = bulkTop(card);
-				destinationStack.push(cards);
-				return;
-			}
+				return true;
+		return false;		
 	}
 	
 	@Override
 	public boolean canPush(Card card)
 	{
-		return pushHiddenCards || 
-				(top().isRed() != card.isRed() 
-				&& top().getValue() + 1 == card.getValue()
-				);
+		return pushHiddenCards 
+				|| (isEmpty() 
+						&& card.getValue() == 13)
+				|| (!isEmpty()
+					&& top().isRed() != card.isRed() 
+					&& top().getValue() == card.getValue() + 1
+					);
 	}
 }

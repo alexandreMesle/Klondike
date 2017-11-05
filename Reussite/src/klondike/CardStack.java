@@ -67,14 +67,14 @@ public abstract class CardStack implements Iterable<Card>
 			destinationStack.push(card);
 		}
 		else
-			throw new RuntimeException("Top cannot be pushed");
+			throw new RuntimeException(card + " cannot be pushed on " + destinationStack.getCards().toString());
 	}
 	
 	public List<Card> getCards()
 	{
 		return Collections.unmodifiableList(cards);
 	}
-		
+	
 	@Override
 	public Iterator<Card> iterator()
 	{
@@ -97,7 +97,7 @@ public abstract class CardStack implements Iterable<Card>
 	public String toString()
 	{
 		String res = "";
-		for (Card card : this)
+		for (Card card : this.getCards())
 			res += card.toString() + "\n";		
 		return res;
 	}

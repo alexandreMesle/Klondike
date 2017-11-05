@@ -15,13 +15,13 @@ import klondike.*;
 class HeapStackTest
 {
 	private List<Card> cards;
-	private HeapStack stack ;
+	private HeapStack heap ;
 	
 	@BeforeEach
 	void setUp() throws Exception
 	{
 		cards = Card.getCards();
-		stack = new HeapStack(cards);
+		heap = new HeapStack(cards);
 	}
 
 	@AfterEach
@@ -32,36 +32,20 @@ class HeapStackTest
 	@Test
 	void iterator()
 	{
-		assertEquals(stack.next(), cards.get(0));
-		assertEquals(stack.top(), cards.get(0));
-		assertEquals(stack.next(), cards.get(1));
-		assertEquals(stack.top(), cards.get(1));
-		stack.pop();
-		assertEquals(stack.next(), cards.get(2));
-		assertEquals(stack.top(), cards.get(2));
-		while(!stack.last())
-			stack.next();
-		assertEquals(stack.top(), cards.get(cards.size() - 1));
-		assertEquals(stack.next(), cards.get(0));
+		int i = 0;
+		for (Card card : heap)
+		{
+			assertEquals(card, cards.get(i));
+			assertEquals(heap.top(), cards.get(i));
+			i++;
+		}
+		assertEquals(52, i);
+		assertFalse(heap.hasNext());
+		heap.reset();
+		assertTrue(heap.hasNext());
+		assertTrue(heap.hasNext());
+		heap.pop();
+		assertEquals(heap.next(), cards.get(1));
+		assertEquals(heap.top(), cards.get(1));
 	}
-	
-//	@Test
-//	void uncover()
-//	{
-//		List<Card> cards = Card.getCards();
-//		Card randomCard = cards.get(0);
-//		stack.push(randomCard);
-//		assertTrue(stack.top() == randomCard);
-//		randomCard = cards.get(1);
-//		stack.push(randomCard);
-//		assertTrue(stack.top() == randomCard);
-//	}
-//
-//	@Test
-//	void constructor()
-//	{
-//		List<Card> cards = Card.getCards();
-//		stack = new TestStack(cards);
-//		assertTrue(stack.getCards().equals(cards));
-//	}
 }

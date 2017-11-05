@@ -5,45 +5,67 @@ import java.util.List;
 
 import card.Card;
 
-public class HeapStack extends CardStack
+public class HeapStack extends CardStack implements Iterator<Card>
 {
-	private Iterator<Card> iterator; 
+	private Iterator<Card> iterator;
 	private Card top;
 
 	public HeapStack(List<Card> cards)
 	{
 		super(cards);
+		reset();
 	}
 	
-	public Card next()
-	{
-		if (iterator == null || !iterator.hasNext())
-			iterator = forwardIterator();
-		if (iterator.hasNext())
-			top = iterator.next();
-		else
-			throw new RuntimeException("Heap is empty");
-		return top();
-	}
-	
-	public boolean last()
-	{
-		return !iterator.hasNext();		
-	}
-	
+	@Override
 	public Card top()
 	{
 		return top;
 	}
-
+	
+	@Override
 	public void pop()
 	{
 		iterator.remove();
 	}
-
+	
 	@Override
 	public boolean canPush(Card card)
 	{
 		return true;
+	}
+
+	@Override
+	public Iterator<Card> iterator()
+	{
+		reset();
+		return this;
+	}
+	
+	public void reset()
+	{
+		iterator = forwardIterator();
+	}
+	
+	@Override
+	public boolean hasNext()
+	{
+		if (iterator.hasNext())
+		{
+			top = iterator.next();
+			return true;
+		}
+		return false;
+	}
+	
+	@Override
+	public Card next()
+	{
+		return top();
+	}
+	
+	@Override
+	public void remove()
+	{
+		pop();
 	}
 }
