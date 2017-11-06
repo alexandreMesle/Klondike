@@ -18,7 +18,7 @@ public class Color
 		colors.add(new Color("Coeur", true));
 		colors.add(new Color("Carreau", true));
 		colors.add(new Color("Pique", false));
-		colors.add(new Color("Trefle", false));
+		colors.add(new Color("Trèfle", false));
 	}
 	
 	private Color(String name, boolean red)

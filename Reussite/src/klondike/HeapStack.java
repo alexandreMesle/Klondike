@@ -26,12 +26,13 @@ public class HeapStack extends CardStack implements Iterator<Card>
 	public void pop()
 	{
 		iterator.remove();
+		hasNext();
 	}
 	
 	@Override
 	public boolean canPush(Card card)
 	{
-		return true;
+		return false;
 	}
 
 	@Override

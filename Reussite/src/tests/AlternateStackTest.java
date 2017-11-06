@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -113,7 +112,7 @@ class AlternateStackTest
 				if(stack.canPush(card))
 				{
 					assertTrue(can, stack + " | " + card);
-					heap.moveTop(stack);
+					heap.move(stack);
 					i ++;
 					break;
 				}
@@ -127,17 +126,18 @@ class AlternateStackTest
 	void bulkMove()
 	{
 		Collections.sort(cards, (card1, card2) -> card2.compareTo(card1));
-		HeapStack heap = new HeapStack(cards);
 		Map<Color, AlternateColorStack> stacks = new HashMap<>();
-		assertTrue(heap.getCards().size() == 52, heap.toString());
 		for (int i = 1 ; i <= 4 ; i++)
 		{
 			AlternateColorStack stack = new AlternateColorStack(cards, 1);
 			stacks.put(stack.top().getColor(), stack);
 			assertEquals(cards.size(), 52 - i);
 		}
+		HeapStack heap = new HeapStack(cards);
+		assertTrue(heap.getCards().size() == 48, heap.toString());
 		Color stackColor = cards.get(0).getColor();
 		AlternateColorStack stack = stacks.get(stackColor);
+		int i = 0;
 		for(Card card : heap)
 		{
 			assertEquals(card, heap.top());
@@ -148,21 +148,67 @@ class AlternateStackTest
 			if(stack.canPush(card))
 			{
 				assertTrue(can, stack + " | " + card);
-				heap.moveTop(stack);
+				heap.move(stack);
 			}
 			else
 				assertFalse(can, stack + " | " + card);
+			i++;
 		}
-		System.out.println(stacks);
+		assertEquals(48, i);
 		for (Color color : stacks.keySet())
 		{
 			boolean can = color != stackColor && color.isRed() == stackColor.isRed();
 			AlternateColorStack sameColorStack = stacks.get(color);
-//			System.out.println(can);
-			assertEquals(can, stack.canBulkMove(sameColorStack));
+			assertEquals(can, stack.canMove(sameColorStack));
 			if (can)
-				stack.bulkMove(sameColorStack);
+			{
+				stack.move(sameColorStack);
+				assertEquals(13, sameColorStack.getCards().size()); 
+				assertEquals(1, stack.getCards().size()); 
+			}
 		}
+	}
+	
+	@Test
+	void moveSingletonStack()
+	{
+		Collections.sort(cards, (card1, card2) -> card2.compareTo(card1));
+		List<AlternateColorStack> stacks = new ArrayList<>();
+		for (int i = 1 ; i <= 4 ; i++)
+			stacks.add(new AlternateColorStack(cards, 0));
+		HeapStack heap = new HeapStack(cards);
+		assertTrue(heap.hasNext());
+		heap.move(stacks.get(0));
+		stacks.get(0).move(stacks.get(1));
+		assertEquals(0, stacks.get(0).getCards().size());
+		assertEquals(1, stacks.get(1).getCards().size());
+		assertEquals(0, stacks.get(2).getCards().size());
+		assertEquals(0, stacks.get(3).getCards().size());
+	}
+
+	@Test
+	void moveCompleteStack()
+	{
+		Collections.sort(cards, (card1, card2) -> card2.compareTo(card1));
+		List<AlternateColorStack> stacks = new ArrayList<>();
+		for (int i = 1 ; i <= 4 ; i++)
+			stacks.add(new AlternateColorStack(cards, 0));
+		AlternateColorStack stack = stacks.get(0);
+		cards
+			.stream()
+			.filter(card -> stack.canPush(card))
+			.forEach(card -> stack.push(card));
 		System.out.println(stacks);
+		assertEquals(13, stacks.get(0).getCards().size());
+		assertEquals(0, stacks.get(1).getCards().size());
+		assertEquals(0, stacks.get(2).getCards().size());
+		assertEquals(0, stacks.get(3).getCards().size());
+		stacks.get(0).move(stacks.get(1));
+		assertEquals(0, stacks.get(0).getCards().size());
+		assertEquals(13, stacks.get(1).getCards().size());
+		assertEquals(0, stacks.get(2).getCards().size());
+		assertEquals(0, stacks.get(3).getCards().size());
+		System.out.println(stacks);
+		
 	}
 }

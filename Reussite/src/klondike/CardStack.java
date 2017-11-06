@@ -58,16 +58,20 @@ public abstract class CardStack implements Iterable<Card>
 			throw new RuntimeException("No Top");
 	}
 	
-	public void moveTop(CardStack destinationStack)
+	public boolean canMove(CardStack destinationStack)
 	{
-		Card card = top();
-		if (destinationStack.canPush(card))
+		return destinationStack.canPush(top());
+	}
+	
+	public void move(CardStack destinationStack)
+	{
+		if (canMove(destinationStack))
 		{
+			destinationStack.push(top());
 			pop();
-			destinationStack.push(card);
 		}
 		else
-			throw new RuntimeException(card + " cannot be pushed on " + destinationStack.getCards().toString());
+			throw new RuntimeException(top() + " cannot be pushed on " + destinationStack.getCards().toString());
 	}
 	
 	public List<Card> getCards()

@@ -34,8 +34,7 @@ public class AlternateColorStack extends CardStack
 	
 	private void uncover()
 	{
-		if(numberOfHiddenCards != 0)
-			numberOfHiddenCards--;
+		numberOfHiddenCards = max(min(numberOfHiddenCards, getCards().size() - 1), 0);
 	}
 	
 	protected void pop()
@@ -44,11 +43,15 @@ public class AlternateColorStack extends CardStack
 		uncover();
 	}
 	
+	public int getNumberOfHiddenCards()
+	{
+		return numberOfHiddenCards;
+	}
+	
 	public List<Card> getShown()
 	{
 		List<Card> cards = getCards();
 		cards = new ArrayList<>(cards.subList(numberOfHiddenCards, cards.size()));
-		Collections.reverse(cards);
 		cards = Collections.unmodifiableList(cards);
 		return cards;
 	}
@@ -67,7 +70,8 @@ public class AlternateColorStack extends CardStack
 		return subList;
 	}
 	
-	public void bulkMove(CardStack destinationStack)
+	@Override
+	public void move(CardStack destinationStack)
 	{
 		List<Card> cards = bulkTop(destinationStack);
 		if (cards == null)
@@ -76,12 +80,15 @@ public class AlternateColorStack extends CardStack
 		destinationStack.push(cards);
 	}
 	
-	public boolean canBulkMove(CardStack destinationStack)
+	@Override
+	public boolean canMove(CardStack destinationStack)
 	{
+		if (!(destinationStack instanceof AlternateColorStack))
+			return super.canMove(destinationStack);
 		for (Card card : getShown())
 			if (destinationStack.canPush(card))
 				return true;
-		return false;		
+		return false;
 	}
 	
 	@Override
