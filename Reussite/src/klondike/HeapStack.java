@@ -9,6 +9,7 @@ public class HeapStack extends CardStack implements Iterator<Card>
 {
 	private Iterator<Card> iterator;
 	private Card top;
+	private boolean lastCard;
 
 	public HeapStack(List<Card> cards)
 	{
@@ -45,6 +46,7 @@ public class HeapStack extends CardStack implements Iterator<Card>
 	public void reset()
 	{
 		iterator = forwardIterator();
+		lastCard = false;
 	}
 	
 	@Override
@@ -55,6 +57,7 @@ public class HeapStack extends CardStack implements Iterator<Card>
 			top = iterator.next();
 			return true;
 		}
+		lastCard = true;
 		return false;
 	}
 	
@@ -68,5 +71,10 @@ public class HeapStack extends CardStack implements Iterator<Card>
 	public void remove()
 	{
 		pop();
+	}
+	
+	public boolean isLastCard()
+	{
+		return lastCard;
 	}
 }

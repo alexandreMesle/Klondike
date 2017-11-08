@@ -37,12 +37,13 @@ class HeapStackTest
 		{
 			assertEquals(card, cards.get(i));
 			assertEquals(heap.top(), cards.get(i));
+			assertFalse(heap.isLastCard());
 			i++;
 		}
 		assertEquals(52, i);
 		assertFalse(heap.hasNext());
+		assertTrue(heap.isLastCard());
 		heap.reset();
-		assertTrue(heap.hasNext());
 		assertTrue(heap.hasNext());
 		heap.pop();
 		assertEquals(heap.next(), cards.get(1));

@@ -11,6 +11,7 @@ public class Klondike
 	private HeapStack heap;
 	private List<AlternateColorStack> alternateColorStacks = new ArrayList<>();
 	private List<ColorStack> colorStacks = new ArrayList<>();
+	private CardStack selectedStack;
 
 	public Klondike(List<Card> cards)
 	{
@@ -26,6 +27,28 @@ public class Klondike
 		this(Card.getCards());
 	}
 	
+	public void select(CardStack stack)
+	{
+		if (stack==null)
+			throw new RuntimeException("Can't select null stack");
+		selectedStack = stack;
+	}
+	
+	public void unselectStack()
+	{
+		selectedStack = null;
+	}
+	
+	public boolean stackSelected ()
+	{
+		return selectedStack == null;
+	}
+	
+	public CardStack getSelectedStack ()
+	{
+		return selectedStack;
+	}
+
 	public HeapStack getHeap()
 	{
 		return heap;
@@ -41,9 +64,24 @@ public class Klondike
 		return alternateColorStacks.get(index);
 	}
 	
-	public boolean canMove(CardStack source, CardStack destination)
+	public boolean canMove(CardStack destination)
 	{
-		return source == null || source.canMove(destination);
+		return stackSelected() || getSelectedStack().canMove(destination);
+	}
+	
+	public void move(CardStack destination)
+	{
+		getSelectedStack().move(destination);
+		unselectStack();
+	}
+	
+	public int getMaxStackSize()
+	{
+		return alternateColorStacks
+				.stream()
+				.map((stack) -> stack.getCards())
+				.max((x, y) -> x.size() - y.size())
+				.get().size();
 	}
 	
 	public void pickCard()

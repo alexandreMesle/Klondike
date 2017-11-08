@@ -137,7 +137,6 @@ class AlternateStackTest
 		assertTrue(heap.getCards().size() == 48, heap.toString());
 		Color stackColor = cards.get(0).getColor();
 		AlternateColorStack stack = stacks.get(stackColor);
-		int i = 0;
 		for(Card card : heap)
 		{
 			assertEquals(card, heap.top());
@@ -152,9 +151,7 @@ class AlternateStackTest
 			}
 			else
 				assertFalse(can, stack + " | " + card);
-			i++;
 		}
-		assertEquals(48, i);
 		for (Color color : stacks.keySet())
 		{
 			boolean can = color != stackColor && color.isRed() == stackColor.isRed();
@@ -198,7 +195,6 @@ class AlternateStackTest
 			.stream()
 			.filter(card -> stack.canPush(card))
 			.forEach(card -> stack.push(card));
-		System.out.println(stacks);
 		assertEquals(13, stacks.get(0).getCards().size());
 		assertEquals(0, stacks.get(1).getCards().size());
 		assertEquals(0, stacks.get(2).getCards().size());
@@ -208,7 +204,5 @@ class AlternateStackTest
 		assertEquals(13, stacks.get(1).getCards().size());
 		assertEquals(0, stacks.get(2).getCards().size());
 		assertEquals(0, stacks.get(3).getCards().size());
-		System.out.println(stacks);
-		
 	}
 }
