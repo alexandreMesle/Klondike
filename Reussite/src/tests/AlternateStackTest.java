@@ -98,6 +98,7 @@ class AlternateStackTest
 		int i = 0;
 		heap.reset();
 		assertTrue(heap.hasNext());
+		heap.next();
 		assertEquals(heap.top().getFigure().getValue(), 13);
 		for(Card card : heap)
 		{
@@ -175,6 +176,7 @@ class AlternateStackTest
 			stacks.add(new AlternateColorStack(cards, 0));
 		HeapStack heap = new HeapStack(cards);
 		assertTrue(heap.hasNext());
+		heap.next();
 		heap.move(stacks.get(0));
 		stacks.get(0).move(stacks.get(1));
 		assertEquals(0, stacks.get(0).getCards().size());

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Stack;
 
 import card.*;
@@ -58,8 +59,15 @@ public abstract class CardStack implements Iterable<Card>
 			throw new RuntimeException("No Top");
 	}
 	
+	public int size()
+	{
+		return cards.size();
+	}
+	
 	public boolean canMove(CardStack destinationStack)
 	{
+		if (isEmpty())
+			return false;
 		return destinationStack.canPush(top());
 	}
 	
@@ -92,9 +100,9 @@ public abstract class CardStack implements Iterable<Card>
 		return Collections.unmodifiableList(cards).iterator();
 	}
 
-	protected Iterator<Card> forwardIterator()
+	protected ListIterator<Card> forwardIterator()
 	{
-		return cards.iterator();
+		return cards.listIterator();
 	}
 	
 	@Override

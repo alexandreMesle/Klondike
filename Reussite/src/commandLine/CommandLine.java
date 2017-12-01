@@ -3,6 +3,7 @@ package commandLine;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import static java.lang.Math.*;
 
 import card.Card;
 import klondike.AlternateColorStack;
@@ -11,11 +12,12 @@ import klondike.ColorStack;
 import klondike.HeapStack;
 import klondike.Klondike;
 
+
 public class CommandLine
 {
 	private static final int
 			NB_ADDITIONNAL_ROWS= 7,
-			NB_COLS = 2 * Klondike.NB_STACKS + 3,
+			NB_COLS = max(2 * Klondike.NB_STACKS + 3, 17),
 			COLOR_ROW = 2,
 			COLOR_COL = 2,
 			HEAP_ROW = 2,
@@ -38,10 +40,13 @@ public class CommandLine
 	private static final char
 			HEAP_CHAR = '.',
 			PICK_CHAR = '+',
-			EXIT_CHAR = 'q';
-	
+			EXIT_CHAR = 'q',
+			UNDO_CHAR = 'u',
+			REDO_CHAR = 'r';
+
+	private int nbRows;
 	private Klondike klondike;
-	private List<List<String>> board = new ArrayList<>();
+	private List<List<String>> board ;
 	private Scanner scanner = new Scanner(System.in);
 
 
@@ -65,22 +70,37 @@ public class CommandLine
 			try
 			{
 				
-				klondike.unselectStack();
+				klondike.unselectSource();
 				displayBoard();
-				choice = getChoice("Source : ");
-				if (choice == PICK_CHAR)
-					klondike.pickCard();
+				if (klondike.canFinish())
+				{
+					System.out.println("You have won !");
+//					finish();
+					choice = EXIT_CHAR;
+				}
 				else
 				{
-					klondike.select(getSelectedStack(choice));
-					displayBoard();		
-					choice = getChoice("Cible ? ");
-					klondike.move(getSelectedStack(choice));			
+					choice = getChoice("Source : ");
+					if (choice == PICK_CHAR)
+						klondike.pickCard();
+					else if(choice == UNDO_CHAR)
+						klondike.undo();
+					else if(choice == REDO_CHAR)
+						klondike.redo();
+					else
+					{
+						klondike.selectSource(getSelectedStack(choice));
+						displayBoard();		
+						choice = getChoice("Cible ? ");
+						klondike.move(getSelectedStack(choice));			
+					}
 				}
 			}
 			catch(Exception e)
 			{
 				System.out.println("Erreur de saisie");
+//				e.printStackTrace();
+				try {Thread.sleep(5000);} catch (InterruptedException e1) {}
 			}
 		}
 		while(choice != EXIT_CHAR); 
@@ -113,50 +133,77 @@ public class CommandLine
 	private String getSelectorString(CardStack stack, String selector)
 	{
 		String selectorString = NOTHING;
-		if (stack == klondike.getSelectedStack())
+		if (stack == klondike.getSelectedSource())
 			selectorString = SELECTED_STACK;
-		if (klondike.canMove(stack))
+		else if (klondike.canSelect(stack))
 			selectorString = selector;
 		return selectorString;
 	}
 	
+	private String getNextCardString(HeapStack heap)
+	{
+		return (klondike.hasSelectedSource()) ? NOTHING : HEAP_PICKER;
+	}
+	
+	private void initMatrix()
+	{
+		board = new ArrayList<>();
+		for (int i = 0 ; i < nbRows ; i++)
+		{
+			List<String> line = new ArrayList<>();
+			if (i == 0 || i == nbRows - 1)
+				for (int j = 0 ; j < NB_COLS; j++)
+					line.add(HORIZONTAL_BORDER);				
+			else
+			{
+				line.add(VERTICAL_BORDER);
+				for (int j = 0 ; j < NB_COLS - 2; j++)
+					line.add(NOTHING);
+				line.add(VERTICAL_BORDER);
+			}
+			board.add(line);
+		}		
+	}
+
+	private void refreshMatrix()
+	{
+		if (board == null || nbRows != board.size())
+			initMatrix();
+		for (int i = 1 ; i < nbRows -1 ; i++)
+			for (int j = 1 ; j < NB_COLS - 1; j++)
+				board.get(i).set(j, NOTHING);
+	}
+	
+	private void finish()
+	{
+		if (klondike.canFinish())
+			while(klondike.finish())
+			{
+				refreshBoard();
+				try {Thread.sleep(1000);} catch (InterruptedException e) {}
+			}
+		System.out.println("Gagné !");
+	}
+	
 	private void refreshBoard()
 	{
-		int nbRows = klondike.getMaxStackSize() + NB_ADDITIONNAL_ROWS;
-		if (nbRows != board.size())
-		{
-			board.clear();
-			for (int i = 0 ; i < nbRows ; i++)
-			{
-				List<String> line = new ArrayList<>();
-				if (i == 0 || i == nbRows - 1)
-					for (int j = 0 ; j < NB_COLS; j++)
-						line.add(HORIZONTAL_BORDER);				
-				else
-				{
-					line.add(VERTICAL_BORDER);
-					for (int j = 0 ; j < NB_COLS - 2; j++)
-						line.add(NOTHING);
-					line.add(VERTICAL_BORDER);
-				}
-				board.add(line);
-			}
-		}
+		nbRows = klondike.getMaxStackSize() + NB_ADDITIONNAL_ROWS;
+		refreshMatrix();
 		printColorStacks();
 		printAlternateColorStacks();
 		printHeap();
 	}
-	
+
 	private void printHeap()
 	{
 		HeapStack heap = klondike.getHeap();
 		if (!heap.isEmpty())
 		{
-			// TODO bug quand on utilise la dernière carte de la pile 
-			board.get(HEAP_ROW - 1).set(HEAP_COL - 1, (klondike.stackSelected()) ? HEAP_PICKER : NOTHING);
-			board.get(HEAP_ROW).set(HEAP_COL - 1, (klondike.getHeap().isLastCard()) ? NOTHING : HEAP_ARROW);
-			board.get(HEAP_ROW).set(HEAP_COL - 2, stringOfCard(heap.top()));
+			// TODO bug quand on utilise la dernière carte de la pile : le sommet de pile reste affiché
 			board.get(HEAP_ROW).set(HEAP_COL - 3, getSelectorString(heap, HEAP_SELECTOR));
+			board.get(HEAP_ROW).set(HEAP_COL - 2, (klondike.getHeap().isLastCard()) ? HIDDEN_CARD : stringOfCard(heap.top()));
+			board.get(HEAP_ROW).set(HEAP_COL - 1, (klondike.getHeap().isLastCard()) ? NOTHING : HEAP_ARROW);
+			board.get(HEAP_ROW - 1).set(HEAP_COL - 1, getNextCardString(heap));
 			board.get(HEAP_ROW).set(HEAP_COL, (klondike.getHeap().isLastCard()) ? EMPTY_STACK : HIDDEN_CARD);
 		}
 		else
@@ -202,6 +249,8 @@ public class CommandLine
 					, STACK_COL + 2*index, "(" + (index + 1) + ") ", maxStackSize);
 	}
 
+	
+	// TODO permettre de prendre une carte dans une ColorStack
 	private void printColorStacks()
 	{
 		int column = COLOR_COL;
@@ -211,9 +260,7 @@ public class CommandLine
 			String card = EMPTY_STACK;
 			if (!stack.isEmpty())
 				card = stringOfCard(stack.top());
-			String selectorString = (klondike.stackSelected()) 
-					? NOTHING 
-					: getSelectorString(stack, "(" + (char)('a' + i) + ") ");
+			String selectorString = getSelectorString(stack, "(" + (char)('a' + i) + ") ");
 			board.get(COLOR_ROW - 1).set(column, selectorString);
 			board.get(COLOR_ROW).set(column, card);
 			column += 2;

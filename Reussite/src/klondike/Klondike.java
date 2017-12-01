@@ -5,13 +5,18 @@ import java.util.List;
 
 import card.*;
 
+//TODO undo/redo
+//TODO fin automatique
+//TODO Recommencer
+
 public class Klondike
 {
-	public final static int NB_STACKS = 7; 
+	public final static int NB_STACKS = 6; 
 	private HeapStack heap;
 	private List<AlternateColorStack> alternateColorStacks = new ArrayList<>();
 	private List<ColorStack> colorStacks = new ArrayList<>();
 	private CardStack selectedStack;
+	private History history; 
 
 	public Klondike(List<Card> cards)
 	{
@@ -19,7 +24,10 @@ public class Klondike
 			alternateColorStacks.add(new AlternateColorStack(cards, i + 1));
 		Color.getColors().forEach((e) -> colorStacks.add(new ColorStack()));
 		heap = new HeapStack(cards);
-		heap.hasNext();
+		if(heap.hasNext())
+			heap.next();
+		history = new History();
+		selectedStack = null;
 	}	
 
 	public Klondike()
@@ -27,24 +35,24 @@ public class Klondike
 		this(Card.getCards());
 	}
 	
-	public void select(CardStack stack)
+	public void selectSource(CardStack stack)
 	{
 		if (stack==null)
 			throw new RuntimeException("Can't select null stack");
 		selectedStack = stack;
 	}
 	
-	public void unselectStack()
+	public void unselectSource()
 	{
 		selectedStack = null;
 	}
 	
-	public boolean stackSelected ()
+	public boolean hasSelectedSource ()
 	{
-		return selectedStack == null;
+		return selectedStack != null;
 	}
 	
-	public CardStack getSelectedStack ()
+	public CardStack getSelectedSource ()
 	{
 		return selectedStack;
 	}
@@ -64,17 +72,74 @@ public class Klondike
 		return alternateColorStacks.get(index);
 	}
 	
+	public boolean canSelect(CardStack stack)
+	{
+		return !hasSelectedSource() && !stack.isEmpty()
+				|| canMove(stack);
+	}
+	
+	public boolean canFinish()
+	{
+		if (!(heap.size() == 1))
+			return false;
+		for(AlternateColorStack stack : alternateColorStacks)
+			if (stack.getNumberOfHiddenCards() != 0)
+				return false;
+		return true;			
+	}
+
+	public boolean isFinished()
+	{
+		if (!heap.isEmpty())
+			return false;
+		for(AlternateColorStack stack : alternateColorStacks)
+			if (!stack.isEmpty())
+				return false;
+		return true;			
+	}
+
+	public boolean finish()
+	{
+		for(AlternateColorStack sourceStack : alternateColorStacks)
+		{
+			selectSource(sourceStack);
+			for (ColorStack destination : colorStacks)
+				if (canMove(destination))
+				{
+					move(destination);
+					return true;
+				}
+		}
+		if (!heap.isEmpty())
+		{
+			selectSource(heap);
+			for (ColorStack destination : colorStacks)
+				if (canMove(destination))
+				{
+					move(destination);
+					return true;
+				}
+		}
+		return false;
+	}
+	
 	public boolean canMove(CardStack destination)
 	{
-		return stackSelected() || getSelectedStack().canMove(destination);
+		return hasSelectedSource() && getSelectedSource().canMove(destination);
 	}
 	
 	public void move(CardStack destination)
 	{
-		getSelectedStack().move(destination);
-		unselectStack();
+		history.run(new Move(getSelectedSource(), destination));
+		unselectSource();
 	}
 	
+	public void pickCard()
+	{
+		history.run(new Pick(heap));
+	}
+
+
 	public int getMaxStackSize()
 	{
 		return alternateColorStacks
@@ -84,13 +149,24 @@ public class Klondike
 				.get().size();
 	}
 	
-	public void pickCard()
+	public boolean canUndo()
 	{
-		if (!heap.hasNext())
-		{
-			heap.reset();
-			heap.hasNext();
-		}
+		return history.canUndo();
 	}
+	
+	public boolean canRedo()
+	{
+		return history.canRedo();
+	}
+	
+	public void undo()
+	{
+		history.undo();
+	}
+	
+	public void redo()
+	{
+		history.redo();
+	}	
 }
 

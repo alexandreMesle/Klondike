@@ -1,15 +1,14 @@
 package klondike;
 
-import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 import card.Card;
 
-public class HeapStack extends CardStack implements Iterator<Card>
+public class HeapStack extends CardStack implements ListIterator<Card>
 {
-	private Iterator<Card> iterator;
+	private ListIterator<Card> iterator;
 	private Card top;
-	private boolean lastCard;
 
 	public HeapStack(List<Card> cards)
 	{
@@ -26,8 +25,12 @@ public class HeapStack extends CardStack implements Iterator<Card>
 	@Override
 	public void pop()
 	{
+		System.out.println("Popping " + top());
 		iterator.remove();
-		hasNext();
+		if (hasNext())
+			next();
+		else
+			top = null;
 	}
 	
 	@Override
@@ -37,7 +40,7 @@ public class HeapStack extends CardStack implements Iterator<Card>
 	}
 
 	@Override
-	public Iterator<Card> iterator()
+	public ListIterator<Card> iterator()
 	{
 		reset();
 		return this;
@@ -46,24 +49,18 @@ public class HeapStack extends CardStack implements Iterator<Card>
 	public void reset()
 	{
 		iterator = forwardIterator();
-		lastCard = false;
 	}
 	
 	@Override
 	public boolean hasNext()
 	{
-		if (iterator.hasNext())
-		{
-			top = iterator.next();
-			return true;
-		}
-		lastCard = true;
-		return false;
+		return iterator.hasNext();
 	}
 	
 	@Override
 	public Card next()
 	{
+		top = iterator.next();
 		return top();
 	}
 	
@@ -75,6 +72,42 @@ public class HeapStack extends CardStack implements Iterator<Card>
 	
 	public boolean isLastCard()
 	{
-		return lastCard;
+		return !iterator.hasNext();
+	}
+
+	@Override
+	public void add(Card card) 
+	{
+		iterator.add(card);
+	}
+
+	@Override
+	public boolean hasPrevious() 
+	{
+		return iterator.hasPrevious();
+	}
+
+	@Override
+	public int nextIndex() 
+	{
+		throw new RuntimeException("Don't call this method");
+	}
+
+	@Override
+	public Card previous() 
+	{
+		return iterator.previous();
+	}
+
+	@Override
+	public int previousIndex() 
+	{
+		throw new RuntimeException("Don't call this method");
+	}
+
+	@Override
+	public void set(Card arg0) 
+	{
+		throw new RuntimeException("Don't call this method");
 	}
 }

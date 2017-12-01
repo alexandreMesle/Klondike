@@ -7,13 +7,13 @@ import java.util.Set;
 public class Figure implements Comparable<Figure>
 {	
 	private int value;
-	
+	public final static int NB_FIGURES = 10; 
 	private static Set<Figure> figures;
 	
 	static
 	{
 		figures = new HashSet<>();
-		for (int i = 1 ; i <= 13 ; i++)
+		for (int i = 1 ; i <= NB_FIGURES ; i++)
 			figures.add(new Figure(i));
 	}
 	
